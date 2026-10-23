@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#15171a">
+<title>Hitung Mundur Ulang Tahun</title>
+<style>
+:root{
+  --bg:#15171a; --card:#1d2024; --line:#2e3238; --field:#171a1d;
+  --text:#ece9e4; --muted:#9b9a96; --a:#c8a97e; --b:#c8a97e; --c:#c8a97e; --err:#e0a0a0;
+  --grad:var(--a);
+}
+*{box-sizing:border-box;margin:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  min-height:100vh;min-height:100dvh;background:var(--bg);color:var(--text);
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  line-height:1.5;display:flex;justify-content:center;padding:24px 16px 40px;overflow-x:hidden;position:relative;
+}
+
+main{position:relative;z-index:1;width:100%;max-width:560px}
+.brand{text-align:center;margin:8px 0 22px}
+.brand .emoji{font-size:38px;display:block}
+.brand h1{font-size:clamp(22px,5.5vw,30px);letter-spacing:-.02em;margin-top:6px}
+.brand p{color:var(--muted);font-size:14px}
+
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;
+
+}
+.view{display:none}
+.view.on{display:block;animation:in .5s ease both}
+@keyframes in{from{opacity:0;transform:translateY(14px)}}
+
+label,.lbl{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:0 0 6px}
+.field{margin-bottom:16px}
+.row{display:flex;gap:10px}
+.row>*{flex:1;min-width:0}
+input,textarea{
+  width:100%;font:inherit;color:var(--text);background:var(--field);border:1px solid var(--line);
+  border-radius:12px;padding:12px 14px;outline:none;transition:border-color .2s,box-shadow .2s,background .2s;
+}
+input::placeholder,textarea::placeholder{color:#6f6e6a}
+input:focus,textarea:focus{border-color:var(--a);box-shadow:0 0 0 3px rgba(200,169,126,.18)}
+textarea{resize:vertical;min-height:92px}
+.num{text-align:center;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.hint{font-size:12px;color:var(--muted);margin-top:5px}
+.count{text-align:right}
+
+.time{display:flex;gap:10px;align-items:stretch}
+.time .sep{align-self:center;font-size:22px;font-weight:700;color:var(--muted)}
+.time input{width:78px;flex:none}
+.seg{display:flex;flex:1;background:var(--field);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px}
+.seg button{
+  flex:1;border:0;border-radius:10px;background:transparent;color:var(--muted);font:inherit;font-weight:700;
+  cursor:pointer;transition:background .2s,color .2s;
+}
+.seg button[aria-checked="true"]{background:var(--a);color:#1a1611}
+.seg button:focus-visible{outline:2px solid var(--c);outline-offset:1px}
+.conv{font-size:13px;color:var(--c);margin-top:7px;min-height:20px}
+
+.explain{
+  margin:4px 0 18px;padding:14px;border-radius:16px;background:var(--field);border:1px solid var(--line);
+  font-size:13px;color:#d6d3cc;
+}
+.explain h3{font-size:13px;color:var(--c);margin-bottom:8px}
+.explain dl{display:grid;grid-template-columns:auto 1fr;gap:4px 10px}
+.explain dt{font-weight:800;color:#fff}
+.explain dd{margin:0}
+.bar{display:flex;height:8px;border-radius:99px;overflow:hidden;margin:12px 0 4px}
+.bar i{flex:1}
+.bar i:first-child{background:#4a5360}.bar i:last-child{background:var(--a)}
+.barlbl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.explain .tip{margin-top:8px;color:var(--muted)}
+
+.btn{
+  width:100%;border:0;border-radius:14px;padding:14px 18px;font:inherit;font-weight:700;font-size:16px;color:#1a1611;
+  background:var(--a);cursor:pointer;transition:transform .15s,filter .2s;
+}
+.btn:hover{filter:brightness(1.07)}.btn:active{transform:scale(.98)}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line);font-weight:600;font-size:14px;padding:12px}
+.btns{display:grid;gap:10px;margin-top:18px}
+.btns.two{grid-template-columns:1fr 1fr}
+.err{color:var(--err);font-size:13px;min-height:20px;margin:-4px 0 10px}
+
+/* countdown */
+.center{text-align:center}
+.eyebrow{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+.who{font-size:clamp(26px,7vw,36px);font-weight:800;letter-spacing:-.02em;margin:4px 0 2px;word-break:break-word;color:var(--a)}
+.cd{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:22px 0}
+.cd div{background:var(--field);border:1px solid var(--line);border-radius:16px;padding:14px 4px}
+.cd b{display:block;font-size:clamp(26px,8vw,38px);font-variant-numeric:tabular-nums;line-height:1.1}
+.cd span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.meta{display:grid;gap:8px;text-align:left;font-size:14px}
+.meta div{display:flex;gap:10px;align-items:flex-start;background:var(--field);padding:10px 12px;border-radius:12px}
+.meta em{font-style:normal;flex:none}
+.meta p{overflow-wrap:anywhere}
+
+/* perayaan */
+.party .big{font-size:clamp(16px,4.5vw,20px);color:var(--muted)}
+.party .title{font-size:clamp(30px,9vw,46px);font-weight:900;letter-spacing:-.03em;line-height:1.1;margin:6px 0}
+.pop{animation:pop .9s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes pop{from{opacity:0;transform:scale(.6) translateY(20px)}}
+.cake{font-size:64px;display:block;margin-bottom:4px}
+.wish{margin-top:20px;text-align:left;padding:16px;border-radius:16px;background:var(--field);border:1px solid var(--line)}
+.wish h3{font-size:13px;color:var(--c);margin-bottom:6px}
+.wish p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:16px;min-height:24px}
+.caret::after{content:"▌";margin-left:2px;color:var(--a);animation:blink .8s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.at{margin-top:12px;font-size:14px;color:var(--muted)}
+
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+footer{text-align:center;color:#6f6e6a;font-size:12px;margin-top:20px}
+@media (max-width:380px){.time input{width:64px}.card{padding:18px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="confetti" aria-hidden="true"></canvas>
+<main>
+  <header class="brand">
+    <span class="emoji" aria-hidden="true">🎂</span>
+    <h1>Hitung Mundur Ulang Tahun</h1>
+    <p>Isi datamu, lalu tunggu kejutannya.</p>
+  </header>
+
+  <!-- FORM -->
+  <section id="v-form" class="view on card" aria-labelledby="h-form">
+    <form id="form" novalidate autocomplete="off">
+      <div class="field">
+        <label for="name">Nama</label>
+        <input id="name" type="text" maxlength="30" placeholder="Contoh: Budi" required>
+      </div>
+
+      <div class="field">
+        <span class="lbl">Tanggal ulang tahun</span>
+        <div class="row">
+          <div><input id="day" class="num" type="text" inputmode="numeric" maxlength="2" placeholder="Tgl" aria-label="Tanggal (1–31)"></div>
+          <div><input id="month" class="num" type="text" inputmode="numeric" maxlength="2" placeholder="Bln" aria-label="Bulan (1–12)"></div>
+        </div>
+        <p class="hint">Ketik angka saja. Contoh: tanggal <b>17</b>, bulan <b>8</b> (Agustus).</p>
+      </div>
+
+      <div class="field">
+        <span class="lbl">Jam perayaan</span>
+        <div class="time">
+          <input id="hour" class="num" type="text" inputmode="numeric" maxlength="2" placeholder="Jam" aria-label="Jam (1–12)">
+          <span class="sep">:</span>
+          <input id="min" class="num" type="text" inputmode="numeric" maxlength="2" placeholder="Mnt" aria-label="Menit (0–59)">
+          <div class="seg" role="radiogroup" aria-label="AM atau PM">
+            <button type="button" role="radio" aria-checked="true" data-ap="AM">AM</button>
+            <button type="button" role="radio" aria-checked="false" data-ap="PM">PM</button>
+          </div>
+        </div>
+        <p class="conv" id="conv" aria-live="polite"></p>
+      </div>
+
+      <div class="explain">
+        <h3>🕐 Apa bedanya AM dan PM?</h3>
+        <dl>
+          <dt>AM</dt><dd><i>Ante Meridiem</i> = sebelum tengah hari. Dari tengah malam sampai sebelum siang (00.00–11.59).</dd>
+          <dt>PM</dt><dd><i>Post Meridiem</i> = setelah tengah hari. Dari siang sampai sebelum tengah malam (12.00–23.59).</dd>
+        </dl>
+        <div class="bar" aria-hidden="true"><i></i><i></i></div>
+        <div class="barlbl" aria-hidden="true"><span>00.00</span><span>12.00</span><span>24.00</span></div>
+        <p class="tip"><b>12:00 AM</b> = tengah malam, <b>12:00 PM</b> = tepat siang. Misal <b>7:30 PM</b> = pukul 19.30.</p>
+      </div>
+
+      <div class="field">
+        <label for="wish">Doa &amp; harapan <span style="font-weight:400">(opsional)</span></label>
+        <textarea id="wish" maxlength="300" placeholder="Tulis doa atau harapanmu untuk tahun ini..."></textarea>
+        <p class="hint count"><span id="cnt">0</span>/300</p>
+      </div>
+
+      <p class="err" id="err" role="alert"></p>
+      <button class="btn" type="submit">Mulai Hitung Mundur ✨</button>
+    </form>
+  </section>
+
+  <!-- COUNTDOWN -->
+  <section id="v-count" class="view card center" aria-live="off">
+    <p class="eyebrow">Menuju ulang tahun</p>
+    <h2 class="who" id="c-name"></h2>
+    <div class="cd" role="timer" aria-label="Hitung mundur">
+      <div><b id="d">0</b><span>Hari</span></div>
+      <div><b id="h">00</b><span>Jam</span></div>
+      <div><b id="m">00</b><span>Menit</span></div>
+      <div><b id="s">00</b><span>Detik</span></div>
+    </div>
+    <div class="meta">
+      <div><em>📅</em><p id="c-date"></p></div>
+      <div><em>⏰</em><p id="c-time"></p></div>
+      <div id="c-wishbox"><em>🙏</em><p id="c-wish"></p></div>
+    </div>
+    <div class="btns">
+      <button class="btn ghost" id="edit" type="button">✏️ Ubah data</button>
+    </div>
+  </section>
+
+  <!-- PERAYAAN -->
+  <section id="v-party" class="view card center party">
+    <div id="pop" class="pop">
+      <span class="cake" aria-hidden="true">🎉</span>
+      <p class="big">Selamat ulang tahun,</p>
+      <h2 class="title who" id="p-name"></h2>
+    </div>
+    <div class="wish" id="p-wishbox">
+      <h3>🙏 Doa &amp; harapanmu</h3>
+      <p id="p-wish" class="caret"></p>
+    </div>
+    <p class="at" id="p-at"></p>
+    <div class="btns">
+      <button class="btn" id="replay" type="button">🔁 Ulangi ucapan</button>
+      <div class="btns two" style="margin-top:0">
+        <button class="btn ghost" id="again" type="button" title="Hitung mundur ke ulang tahun berikutnya">⏳ Hitung mundur lagi</button>
+        <button class="btn ghost" id="edit2" type="button">✏️ Ubah data</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>© 2026 ultahmaman</footer>
+</main>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const KEY = 'bday-countdown-v1';
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const f = { name:$('#name'), day:$('#day'), month:$('#month'), hour:$('#hour'), min:$('#min'), wish:$('#wish') };
+  let exact = 0, ap = 'AM', data = null, target = null, minYear = 0, timer = 0, typer = 0, previewing = false;
+
+  /* ---------- utilitas ---------- */
+  const pad = n => String(n).padStart(2, '0');
+  const MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const MAXD = [31,29,31,30,31,30,31,31,30,31,30,31];
+  const to24 = (h, a) => (h % 12) + (a === 'PM' ? 12 : 0);
+  const fmtTime = (h, m, a) => `${h}:${pad(m)} ${a}`;
+  const sameDay = (a, b) => a.toDateString() === b.toDateString();
+  const fmtDate = d => d.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  function show(id){
+    document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === id));
+    clearInterval(timer); clearTimeout(exact);
+  }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch(e){} };
+  const load = () => { try { return JSON.parse(localStorage.getItem(KEY)); } catch(e){ return null; } };
+
+  /* ---------- input: hanya angka ---------- */
+  ['day','month','hour','min'].forEach(k => f[k].addEventListener('input', () => {
+    f[k].value = f[k].value.replace(/\D/g, '');
+    updateConv();
+  }));
+  f.wish.addEventListener('input', () => $('#cnt').textContent = f.wish.value.length);
+
+  document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+    ap = b.dataset.ap;
+    document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-checked', String(x === b)));
+    updateConv();
+  }));
+  function setAp(v){
+    ap = v;
+    document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-checked', String(x.dataset.ap === v)));
+  }
+  function updateConv(){
+    const h = +f.hour.value, m = f.min.value === '' ? 0 : +f.min.value;
+    const el = $('#conv');
+    if (!f.hour.value || h < 1 || h > 12 || m > 59){ el.textContent = ''; return; }
+    const w = ap === 'AM' ? (h === 12 ? 'tengah malam' : 'pagi/dini hari') : (h === 12 ? 'siang' : (h < 6 ? 'siang/sore' : 'malam'));
+    el.textContent = `= pukul ${pad(to24(h, ap))}.${pad(m)} (${w})`;
+  }
+
+  /* ---------- validasi ---------- */
+  function read(){
+    const name = f.name.value.trim();
+    const day = +f.day.value, month = +f.month.value, hour = +f.hour.value;
+    const min = f.min.value === '' ? 0 : +f.min.value;
+    if (!name) return { e:'Nama belum diisi.', el:f.name };
+    if (!f.month.value || month < 1 || month > 12) return { e:'Bulan harus angka 1–12.', el:f.month };
+    if (!f.day.value || day < 1 || day > MAXD[month-1]) return { e:`Tanggal untuk bulan ${MONTHS[month-1]} harus 1–${MAXD[month-1]}.`, el:f.day };
+    if (!f.hour.value || hour < 1 || hour > 12) return { e:'Jam harus angka 1–12 (pilih AM atau PM).', el:f.hour };
+    if (min > 59) return { e:'Menit harus 0–59.', el:f.min };
+    return { ok:{ name, day, month, hour, min, ap, wish:f.wish.value.trim() } };
+  }
+
+  /* ---------- hitung target ---------- */
+  function makeDate(y){
+    const d = new Date(y, data.month-1, data.day, to24(data.hour, data.ap), data.min, 0, 0);
+    return d.getMonth() === data.month-1 && d.getDate() === data.day ? d : null; // 29 Feb hanya di tahun kabisat
+  }
+  function nextTarget(now){
+    const y0 = Math.max(now.getFullYear(), minYear);
+    for (let y = y0; y < y0 + 9; y++){
+      const d = makeDate(y); if (!d) continue;
+      if (d > now) return { date:d, done:false };
+      if (!minYear && sameDay(d, now)) return { date:d, done:true }; // hari ini & jamnya sudah lewat
+    }
+  }
+
+  /* ---------- tampilan countdown ---------- */
+  function startCountdown(){
+    const t = nextTarget(new Date());
+    if (t.done){ celebrate(t.date); return; }
+    target = t.date;
+    data.target = +target; data.seen = false; save();
+    $('#c-name').textContent = data.name;
+    $('#c-date').textContent = fmtDate(target);
+    $('#c-time').textContent = `Perayaan pukul ${fmtTime(data.hour, data.min, data.ap)} (${pad(to24(data.hour, data.ap))}.${pad(data.min)})`;
+    $('#c-wishbox').style.display = data.wish ? '' : 'none';
+    $('#c-wish').textContent = data.wish;
+    show('v-count');
+    tick(); timer = setInterval(tick, 1000);
+    clearTimeout(exact); if (target - Date.now() < 2147e6) exact = setTimeout(tick, target - Date.now() + 50);
+  }
+  function tick(){
+    const diff = target - Date.now();
+    if (diff <= 0){ clearInterval(timer); celebrate(target); return; }
+    const s = Math.floor(diff / 1000);
+    $('#d').textContent = Math.floor(s / 86400);
+    $('#h').textContent = pad(Math.floor(s % 86400 / 3600));
+    $('#m').textContent = pad(Math.floor(s % 3600 / 60));
+    $('#s').textContent = pad(s % 60);
+  }
+
+  /* ---------- perayaan ---------- */
+  function celebrate(date, isPreview){
+    previewing = !!isPreview;
+    target = date || target;
+    if (!previewing){ data.target = +target; data.seen = true; save(); }
+    $('#p-name').textContent = data.name + '!';
+    $('#p-wishbox').style.display = data.wish ? '' : 'none';
+    $('#p-at').textContent = `⏰ Jam perayaan: ${fmtTime(data.hour, data.min, data.ap)} (${pad(to24(data.hour, data.ap))}.${pad(data.min)})`;
+    $('#again').textContent = previewing ? '↩️ Kembali' : '⏳ Hitung mundur lagi';
+    show('v-party');
+    play();
+  }
+  function play(){
+    const p = $('#pop'); p.classList.remove('pop'); void p.offsetWidth; p.classList.add('pop');
+    typeWish(data.wish);
+    burst();
+  }
+  function typeWish(text){
+    clearInterval(typer);
+    const el = $('#p-wish'); el.textContent = ''; el.classList.add('caret');
+    if (!text || reduce){ el.textContent = text; el.classList.remove('caret'); return; }
+    const chars = [...text], step = Math.max(1, Math.ceil(chars.length / 90)); let i = 0;
+    typer = setInterval(() => {
+      i += step; el.textContent = chars.slice(0, i).join('');
+      if (i >= chars.length){ clearInterval(typer); el.classList.remove('caret'); }
+    }, 35);
+  }
+
+  /* ---------- confetti (ringan: berhenti sendiri) ---------- */
+  const cv = $('#confetti'), cx = cv.getContext('2d'); let parts = [], raf = 0;
+  function burst(){
+    cancelAnimationFrame(raf);
+    if (reduce) return;
+    const r = Math.min(devicePixelRatio || 1, 2), W = innerWidth, H = innerHeight;
+    cv.width = W * r; cv.height = H * r; cx.setTransform(r, 0, 0, r, 0, 0);
+    const cols = ['#c8a97e','#d9c7a8','#8fa39a','#a9b4c2','#b88a82','#ece9e4'];
+    parts = Array.from({ length: 140 }, (_, i) => ({
+      x: Math.random() * W, y: -20 - Math.random() * H * .7,
+      w: 6 + Math.random() * 6, h: 8 + Math.random() * 8,
+      vx: (Math.random() - .5) * 2.5, vy: 2 + Math.random() * 3.5,
+      a: Math.random() * 6.28, va: (Math.random() - .5) * .3, c: cols[i % cols.length]
+    }));
+    (function loop(){
+      cx.clearRect(0, 0, W, H); let alive = 0;
+      for (const p of parts){
+        p.x += p.vx + Math.sin(p.y / 40); p.y += p.vy; p.a += p.va;
+        if (p.y > H + 30) continue;
+        alive++;
+        cx.save(); cx.translate(p.x, p.y); cx.rotate(p.a); cx.fillStyle = p.c; cx.fillRect(-p.w/2, -p.h/2, p.w, p.h); cx.restore();
+      }
+      if (alive) raf = requestAnimationFrame(loop); else cx.clearRect(0, 0, W, H);
+    })();
+  }
+
+  /* ---------- aksi ---------- */
+  $('#form').addEventListener('submit', e => {
+    e.preventDefault();
+    const r = read();
+    $('#err').textContent = r.e || '';
+    if (r.e){ r.el.focus(); return; }
+    data = r.ok; minYear = 0; save(); startCountdown();
+  });
+  function goEdit(){
+    cancelAnimationFrame(raf); cx.clearRect(0, 0, cv.width, cv.height); clearInterval(typer);
+    if (data){
+      f.name.value = data.name; f.day.value = data.day; f.month.value = data.month;
+      f.hour.value = data.hour; f.min.value = pad(data.min); f.wish.value = data.wish;
+      setAp(data.ap); $('#cnt').textContent = data.wish.length; updateConv();
+    }
+    show('v-form');
+  }
+  $('#edit').onclick = $('#edit2').onclick = goEdit;
+  $('#replay').onclick = play;
+  $('#again').onclick = () => {
+    cancelAnimationFrame(raf); cx.clearRect(0, 0, cv.width, cv.height); clearInterval(typer);
+    if (!previewing) minYear = target.getFullYear() + 1; // lanjut ke ulang tahun berikutnya
+    startCountdown();
+  };
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && $('#v-count').classList.contains('on')) tick(); });
+
+  /* ---------- mulai: pulihkan data tersimpan ---------- */
+  const saved = load();
+  if (saved && saved.name && saved.day && saved.month && saved.hour){
+    data = { wish:'', min:0, ap:'AM', ...saved };
+    goEdit();
+    const tg = data.target ? new Date(data.target) : null;
+    if (tg && tg <= new Date()){
+      if (!data.seen) celebrate(tg);                 // waktunya tiba saat browser tertutup
+      else { minYear = tg.getFullYear() + 1; if (sameDay(tg, new Date())) celebrate(tg); else startCountdown(); }
+    } else startCountdown();
+  }
+})();
+</script>
+</body>
+</html>
